@@ -1,0 +1,105 @@
+
+<!doctype html>
+<html>
+<meta charset="utf-8">
+<head>
+    <!-- <script src="src/brython.js"></script>
+    <script src="src/brython_stdlib.js"></script> -->
+    <script type="text/javascript"
+        src="https://cdn.rawgit.com/brython-dev/brython/stable/www/src/brython.js">
+    </script>
+    <script type="text/javascript"
+        src="https://cdn.rawgit.com/brython-dev/brython/stable/www/src/brython_stdlib.js">
+    </script>
+</head>
+<body onLoad="brython()">
+<script type="text/python">
+    from browser import html
+    from browser import window
+    from browser import document as doc
+    import traceback
+    import time
+    import sys
+
+    editor = html.TEXTAREA(rows=20, cols=70, Id='area')
+    doc["editor"] <= editor
+    def get_value(): return editor.value
+    def set_value(x):editor.value = x
+    editor.getValue = get_value
+    editor.setValue = set_value
+
+
+    if hasattr(window, 'localStorage'):
+        from browser.local_storage import storage
+    else:
+        storage = None
+
+    def reset_src():
+        if storage is not None and "py_src" in storage:
+            editor.setValue(storage["py_src"])
+
+    def clear_src():
+        if storage is not None and "py_src" in storage:
+            del storage["py_src"]
+            load_script()
+
+    class cOutput:
+        def write(self, data):
+            doc["console"].value += str(data)
+
+    sys.stdout = cOutput()
+    sys.stderr = cOutput()
+
+    info = sys.implementation.version
+    doc['version'].text = '%s.%s.%s' % (info.major, info.minor, info.micro)
+
+    def load_script():
+        doc['area'].value = open('main.py').read()
+
+    def run(*args):
+        doc["console"].value = ''
+        src = editor.getValue()
+        if storage is not None:
+           storage["py_src"] = src
+
+        t0 = time.perf_counter()
+        try:
+            ns = {'__name__':'__main__'}
+            exec(src, ns)
+            state = 1
+        except Exception as exc:
+            traceback.print_exc(file=sys.stderr)
+            state = 0
+
+        print('<completed in %6.2f ms>' % ((time.perf_counter() - t0) * 1000.0))
+
+    def done():
+        doc["console"].value = ''
+        src = (open('lesson_tests.py').read())
+        t0 = time.perf_counter()
+        try:
+            ns = {'__name__':'__main__'}
+            exec(src, ns)
+            state = 1
+        except Exception as exc:
+            traceback.print_exc(file=sys.stderr)
+            state = 0
+
+        print('<completed in %6.2f ms>' % ((time.perf_counter() - t0) * 1000.0))
+
+    load_script()
+    reset_src()
+    doc['run'].bind('click', run)
+    doc['reset'].bind('click', clear_src)
+    doc['done'].bind('click', done)
+    
+</script>
+    <button id="run">run</button>
+    <button id="reset">reset</button>
+    <button id="done">done</button>
+
+    <div id="editor"></div>
+    <textarea id="console"></textarea>
+    <div>version<span id="version"></span></div>
+</body>
+</html>
