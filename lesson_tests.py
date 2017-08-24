@@ -1,5 +1,4 @@
 import unittest
-from main import *
 
 class SumTests(unittest.TestCase):
     def test_main(self):
@@ -7,4 +6,4 @@ class SumTests(unittest.TestCase):
         self.assertEqual(total, 55)
 
 if __name__=='__main__':
-	SumTests().test_main()
+    SumTests().test_main()

@@ -5,6 +5,8 @@
 <head>
     <!-- <script src="src/brython.js"></script>
     <script src="src/brython_stdlib.js"></script> -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://fastcdn.org/FileSaver.js/1.1.20151003/FileSaver.min.js"></script>
     <script type="text/javascript"
         src="https://cdn.rawgit.com/brython-dev/brython/stable/www/src/brython.js">
     </script>
@@ -27,7 +29,6 @@
     def set_value(x):editor.value = x
     editor.getValue = get_value
     editor.setValue = set_value
-
 
     if hasattr(window, 'localStorage'):
         from browser.local_storage import storage
@@ -76,14 +77,18 @@
     def done():
         doc["console"].value = ''
         src = (open('lesson_tests.py').read())
+        main = editor.getValue() + '\n\n' + src
+
         t0 = time.perf_counter()
+        
         try:
             ns = {'__name__':'__main__'}
-            exec(src, ns)
+            exec(main, ns)
             state = 1
         except Exception as exc:
             traceback.print_exc(file=sys.stderr)
             state = 0
+        
 
         print('<completed in %6.2f ms>' % ((time.perf_counter() - t0) * 1000.0))
 
